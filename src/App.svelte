@@ -1,47 +1,66 @@
 <script lang="ts">
-  import svelteLogo from "./assets/svelte.svg";
-  import Read from "./lib/Read.svelte";
-  import { functionData } from "./lib/stores";
-  import Write from "./lib/Write.svelte";
   import axios from "axios";
+  import { onMount } from "svelte";
   import { functionId } from "./utils/functionId";
+  import { v4 as uuid } from "uuid";
+  import TailwindCss from "./TailwindCSS.svelte";
+
+  $: state = {
+    data: {
+      discussions: {},
+    },
+  };
+
+  const id = uuid();
+
+  onMount(async () => {
+    state = await axios({
+      method: "get",
+      url: `https://${functionId}.exm.run`,
+    });
+
+    console.log(state);
+  });
+
+  async function handleSubmit(e) {
+    await axios({
+      method: "post",
+      url: `https://${functionId}.exm.run`,
+      data: {
+        type: "createDiscussion",
+        discussion: {
+          id: id,
+          name: e.target.name.value,
+          content: e.target.content.value,
+        },
+      },
+    });
+
+    state = await axios({
+      method: "get",
+      url: `https://${functionId}.exm.run`,
+    });
+
+    console.log(state);
+
+    e.target.reset();
+  }
 </script>
 
+<TailwindCss />
+
 <header>
-  <h1>User Registry</h1>
+  <h1>Discussion Forum</h1>
 </header>
 <main>
-  <Write />
-  {#await axios({ method: "get", url: `https://${functionId}.exm.run` })}
-    <div>Loading..</div>
-  {:then readTx}
-    {#each Object.keys(readTx.data) as key}
-      <div>{key}</div>
-      {#each readTx.data[key] as user}
-        <div>{JSON.stringify(user)}</div>
-      {/each}
-    {/each}
-  {/await}
+  <form on:submit|preventDefault={handleSubmit}>
+    <input type="text" name="name" placeholder="Anon" />
+    <input type="text" name="content" placeholder="Discussion Topic" />
+    <button type="submit">Add Topic</button>
+  </form>
+  <div>Discussions</div>
+  {#each Object.values(state.data.discussions) as discussion}
+    <div>{discussion.name}</div>
+    <div>{discussion.content}</div>
+  {/each}
 </main>
-
-<style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-  }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
-  }
-  .read-the-docs {
-    color: #888;
-  }
-
-  div {
-    padding: 20px;
-  }
-</style>

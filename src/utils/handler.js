@@ -1,5 +1,7 @@
 export async function handle(state, action) {
-  const { username, content } = action.input;
-  state.users.push({ username, content });
+  const { type, discussion } = action.input;
+  if (type === 'createDiscussion' || type === 'addReply') {
+    state.discussions[discussion.id] = discussion;
+  }
   return { state };
 }

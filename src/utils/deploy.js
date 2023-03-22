@@ -1,10 +1,17 @@
 import { ContractType } from '@execution-machine/sdk'
 import fs from 'fs'
-import { exmInstance } from './exm.js'
-import { state } from './state.js'
+import { Exm } from '@execution-machine/sdk'
+
+const APIKEY = process.env.EXM_PK
+export const exmInstance = new Exm({ token: APIKEY })
 
 const contractSource = fs.readFileSync('./src/utils/handler.js')
-const data = await exmInstance.functions.deploy(contractSource, state, ContractType.JS)
+const data = await exmInstance.functions.deploy(
+  contractSource,
+  {
+    "discussions": {}
+  },
+  ContractType.JS)
 
 console.log({ data })
 
